@@ -587,36 +587,72 @@
   </script>
 
   <!-- Beacon Chat -->
-  <div id="beacon-user" data-extension="true" data-events="true" data-org-id="LJVHRV">
-    <style id="bar-scoped-css"></style>
-  </div>
-  <script>
-    window.BeaconBar = {
-      ...(window.BeaconBar || {}),
-      orgId: "LJVHRV",
-      callbacks: {
-        "dev_success": (id, metaData) => {
-          console.log("dev success called with arguments", id, metaData);
-        }
-      },
-      user: {
-        identifier: "beacon-thkjes",
-        metaData: {
-          language: "en",
-          isVoiceBotEnabled: true,
-          enableTabAudio: true,
-          name: "Sai Kumar",
-          email: "support@beacon.li",
-          nested: { key: "value" },
-          paths: ["xyz", "abc"],
-          times: "6"
-        }
-      },
-      eventListeners: [(eventName, attributes, userId) => {
-        console.log("EVENT LISTENER", { eventName, attributes, userId });
-      }]
-    };
-  </script>
+  <!-- Beacon Chat -->
+<div
+  id="beacon-user"
+  data-extension="true"
+  data-events="true"
+  data-org-id="LJVHRV"
+>
+</div>
+
+<script>
+(function (b, e, a, c, o, n) {
+  b[c] = {
+    ...(b[c] || {}),
+    orgId: n,
+
+    open: () => {
+      b[c].opened = true;
+    },
+
+    user: {
+      identifier: "beacon-test",
+      metaData: {
+        times: "6",
+        language: "en",
+        voice: "nova",
+        isVoiceBotEnabled: true,
+        enableTabAudio: true
+      }
+    },
+
+    callbacks: {
+      dev_success: (id, metaData) => {
+        console.log("dev success", id, metaData);
+      }
+    },
+
+    eventListeners: [
+      (eventName, attributes, userId) => {
+        console.log("EVENT", {
+          eventName,
+          attributes,
+          userId
+        });
+      }
+    ]
+  };
+
+  const s = e.createElement(a);
+  s.src = "https://cdn-staging.beacon.li/sdk/latest.js";
+  s.async = true;
+  s.type = "module";
+
+  const d = e.getElementById("beacon-user");
+
+  if (!d) {
+    const div = e.createElement(o);
+    div.id = "beacon-user";
+    div.dataset.extension = "true";
+    div.dataset.orgId = n;
+    e.body.appendChild(div);
+  }
+
+  e.head.appendChild(s);
+
+})(window, document, "script", "BeaconBar", "div", "LJVHRV");
+</script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
