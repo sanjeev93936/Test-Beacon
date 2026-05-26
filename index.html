@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>MovieBox</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #181818;
+      --surface2: #222;
+      --border: #2a2a2a;
+      --accent: #e50914;
+      --accent2: #f5a623;
+      --text: #fff;
+      --text2: #aaa;
+      --text3: #666;
+      --radius: 10px;
+      --img: https://image.tmdb.org/t/p/w500;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: linear-gradient(to bottom, #000 0%, transparent 100%);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 32px; gap: 16px;
+    }
+    .logo { font-size: 24px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; cursor: pointer; }
+    .nav-tabs { display: flex; gap: 4px; }
+    .nav-tab {
+      padding: 7px 16px; border-radius: 20px; border: none; cursor: pointer;
+      font-size: 13px; font-weight: 500; transition: all .15s;
+      background: transparent; color: var(--text2);
+    }
+    .nav-tab:hover { background: var(--surface2); color: var(--text); }
+    .nav-tab.active { background: var(--accent); color: #fff; }
+    .search-bar {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 24px; padding: 8px 16px; min-width: 260px;
+      transition: border-color .15s;
+    }
+    .search-bar:focus-within { border-color: var(--accent); }
+    .search-bar input {
+      background: none; border: none; outline: none; color: var(--text);
+      font-size: 14px; width: 100%;
+    }
+    .search-bar input::placeholder { color: var(--text3); }
+    .search-icon { color: var(--text3); font-size: 16px; }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; height: 520px; overflow: hidden;
+      display: flex; align-items: flex-end;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center top;
+      transition: background-image .5s;
+    }
+    .hero-bg::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to top, #0d0d0d 0%, rgba(13,13,13,.5) 50%, transparent 100%);
+    }
+    .hero-content { position: relative; z-index: 1; padding: 40px 40px; max-width: 620px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent); color: #fff; font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 4px; letter-spacing: .5px; margin-bottom: 12px;
+    }
+    .hero-title { font-size: 36px; font-weight: 700; margin-bottom: 10px; line-height: 1.1; }
+    .hero-meta { color: var(--text2); font-size: 13px; margin-bottom: 14px; display: flex; gap: 12px; }
+    .hero-overview { color: var(--text2); font-size: 14px; line-height: 1.6; margin-bottom: 22px; max-width: 500px; }
+    .hero-actions { display: flex; gap: 10px; }
+    .btn { padding: 10px 22px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: all .15s; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #c40812; }
+    .btn-ghost { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.2); }
+    .btn-ghost:hover { background: rgba(255,255,255,.2); }
+    .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 5px; }
+
+    /* ── MAIN ── */
+    main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+    /* ── SECTION ── */
+    .section { margin-bottom: 40px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 18px; font-weight: 600; }
+    .see-all { color: var(--accent); font-size: 13px; cursor: pointer; background: none; border: none; }
+    .see-all:hover { text-decoration: underline; }
+
+    /* ── GRID ── */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+    .grid-lg { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface); border-radius: var(--radius);
+      overflow: hidden; cursor: pointer; transition: transform .2s, box-shadow .2s;
+      position: relative;
+    }
+    .card:hover { transform: scale(1.04); box-shadow: 0 12px 32px rgba(0,0,0,.6); z-index: 2; }
+    .card-poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; background: var(--surface2); }
+    .card-body { padding: 10px 12px 12px; }
+    .card-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+    .card-meta { font-size: 11px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+    .star { color: var(--accent2); }
+    .type-badge {
+      position: absolute; top: 8px; left: 8px;
+      font-size: 9px; font-weight: 700; letter-spacing: .4px;
+      padding: 2px 6px; border-radius: 3px; text-transform: uppercase;
+    }
+    .type-movie { background: var(--accent); color: #fff; }
+    .type-tv { background: #1a56db; color: #fff; }
+    .watchlist-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,0,0,.7); border: none; border-radius: 50%;
+      width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; opacity: 0; transition: opacity .15s;
+    }
+    .card:hover .watchlist-btn { opacity: 1; }
+
+    /* ── SEARCH RESULTS ── */
+    .search-section { margin-bottom: 40px; }
+    .search-title { font-size: 16px; font-weight: 600; margin-bottom: 14px; color: var(--text2); }
+    .search-title span { color: var(--text); }
+
+    /* ── DETAIL MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.85);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface); border-radius: 14px; overflow: hidden;
+      width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column;
+      transform: scale(.95); transition: transform .2s;
+    }
+    .modal-overlay.open .modal { transform: scale(1); }
+    .modal-hero { position: relative; height: 300px; flex-shrink: 0; }
+    .modal-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .modal-hero::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to top, var(--surface) 0%, transparent 60%);
+    }
+    .modal-close {
+      position: absolute; top: 14px; right: 14px; z-index: 1;
+      background: rgba(0,0,0,.7); border: none; color: #fff; border-radius: 50%;
+      width: 32px; height: 32px; cursor: pointer; font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-body { overflow-y: auto; padding: 0 28px 28px; flex: 1; }
+    .modal-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .modal-meta { color: var(--text2); font-size: 13px; display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+    .modal-overview { color: var(--text2); font-size: 14px; line-height: 1.7; margin-bottom: 24px; }
+    .modal-actions { display: flex; gap: 10px; margin-bottom: 28px; }
+
+    /* ── TABS ── */
+    .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    .tab-btn {
+      padding: 8px 16px; border: none; background: none; cursor: pointer;
+      font-size: 13px; font-weight: 500; color: var(--text2); border-bottom: 2px solid transparent;
+      margin-bottom: -1px; transition: all .15s;
+    }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* ── REVIEWS ── */
+    .review {
+      background: var(--surface2); border-radius: 8px; padding: 16px; margin-bottom: 12px;
+      border: 1px solid var(--border);
+    }
+    .review-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .review-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--accent);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0;
+    }
+    .review-author { font-size: 14px; font-weight: 600; }
+    .review-date { font-size: 11px; color: var(--text3); }
+    .review-rating { margin-left: auto; background: var(--surface); border-radius: 4px; padding: 3px 8px; font-size: 12px; font-weight: 600; color: var(--accent2); }
+    .review-content { font-size: 13px; color: var(--text2); line-height: 1.6; }
+    .review-content.collapsed { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .toggle-review { color: var(--accent); font-size: 12px; cursor: pointer; border: none; background: none; margin-top: 6px; }
+
+    /* ── RECOMMENDATIONS ── */
+    .rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+
+    /* ── FAVORITES ── */
+    .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      padding: 10px 20px; border-radius: 8px; font-size: 13px; z-index: 999;
+      opacity: 0; transition: opacity .2s; pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ── SKELETON ── */
+    .skeleton { background: linear-gradient(90deg, var(--surface2) 25%, #2a2a2a 50%, var(--surface2) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .skel-card { height: 260px; border-radius: var(--radius); }
+
+    /* ── EMPTY ── */
+    .empty { text-align: center; padding: 40px; color: var(--text3); font-size: 14px; }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 12px 16px; flex-wrap: wrap; }
+      .search-bar { min-width: 0; flex: 1; }
+      .nav-tabs { display: none; }
+      main { padding: 16px; }
+      .hero { height: 380px; }
+      .hero-title { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo" onclick="showSection('trending')">🎬 MovieBox</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showSection('trending', this)">Trending</button>
+      <button class="nav-tab" onclick="showSection('favorites', this)">My Favorites</button>
+      <button class="nav-tab" onclick="showSection('watchlist', this)">Watchlist</button>
+    </div>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search movies…" oninput="onSearch(this.value)">
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero" id="hero" style="display:none">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-content">
+      <div class="hero-badge">🔥 Trending Today</div>
+      <div class="hero-title" id="heroTitle"></div>
+      <div class="hero-meta" id="heroMeta"></div>
+      <div class="hero-overview" id="heroOverview"></div>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="heroPlayBtn">▶ More Info</button>
+        <button class="btn btn-ghost" id="heroWatchBtn">+ Watchlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main>
+    <!-- TRENDING -->
+    <div id="trendingSection">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">🔥 Trending Today</div>
+        </div>
+        <div class="grid grid-lg" id="trendingGrid"></div>
+      </div>
+    </div>
+
+    <!-- FAVORITES -->
+    <div id="favoritesSection" style="display:none">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">❤️ My Favorite Movies</div>
+        </div>
+        <div class="grid fav-grid" id="favoritesGrid"></div>
+      </div>
+    </div>
+
+    <!-- WATCHLIST -->
+    <div id="watchlistSection" style="display:none">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">🔖 My Watchlist</div>
+        </div>
+        <div class="grid" id="watchlistGrid"></div>
+      </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div id="searchSection" style="display:none">
+      <div class="search-title">Results for: <span id="searchQuery"></span></div>
+      <div class="grid grid-lg" id="searchGrid"></div>
+    </div>
+  </main>
+
+  <!-- DETAIL MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="onOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-hero">
+        <img id="modalBackdrop" src="" alt="">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-meta" id="modalMeta"></div>
+        <div class="modal-overview" id="modalOverview"></div>
+        <div class="modal-actions" id="modalActions"></div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchTab('reviews', this)">Reviews</button>
+          <button class="tab-btn" onclick="switchTab('recommendations', this)">More Like This</button>
+        </div>
+        <div id="tabContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2MDE3ZWVkYTQwNGUyZmYwYjZlNDNmZDg5M2VjZTRhMCIsIm5iZiI6MTc2MzQ3MDQxMi4xMzkwMDAyLCJzdWIiOiI2OTFjNmM0YzJhZjMyOTM2ZTJjN2Q0ZDciLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.brMHDSW5xD21u4WyP9qRGSisI5D6dLysNdNk-pbSRhE'
+    const ACCOUNT_ID = '22481335'
+    const IMG = 'https://image.tmdb.org/t/p/w500'
+    const IMG_ORIG = 'https://image.tmdb.org/t/p/original'
+    const BASE = 'https://api.themoviedb.org/3'
+    const HEADERS = { 'accept': 'application/json', 'authorization': `Bearer ${TOKEN}` }
+
+    let currentItem = null
+    let currentSection = 'trending'
+    let searchTimer = null
+    let watchlistIds = new Set()
+
+    // ── API ───────────────────────────────────────────────────────────────────
+    const api = (path) => fetch(`${BASE}${path}`, { headers: HEADERS }).then(r => r.json())
+
+    // ── INIT ──────────────────────────────────────────────────────────────────
+    loadTrending()
+
+    async function loadTrending() {
+      renderSkeletons('trendingGrid', 12)
+      const data = await api('/trending/all/day')
+      const items = data.results || []
+      if (items[0]) renderHero(items[0])
+      document.getElementById('hero').style.display = 'flex'
+      renderGrid('trendingGrid', items)
+    }
+
+    async function loadFavorites() {
+      renderSkeletons('favoritesGrid', 8)
+      const data = await api(`/account/${ACCOUNT_ID}/favorite/movies`)
+      renderGrid('favoritesGrid', data.results || [], 'movie')
+    }
+
+    async function loadWatchlist() {
+      renderSkeletons('watchlistGrid', 8)
+      const data = await api(`/account/${ACCOUNT_ID}/watchlist`)
+      watchlistIds = new Set((data.results || []).map(i => String(i.id)))
+      renderGrid('watchlistGrid', data.results || [])
+    }
+
+    // ── HERO ──────────────────────────────────────────────────────────────────
+    function renderHero(item) {
+      const title = item.title || item.name || 'Untitled'
+      const overview = item.overview || ''
+      const bg = item.backdrop_path ? `${IMG_ORIG}${item.backdrop_path}` : ''
+      document.getElementById('heroBg').style.backgroundImage = bg ? `url(${bg})` : 'none'
+      document.getElementById('heroTitle').textContent = title
+      document.getElementById('heroMeta').innerHTML =
+        `<span>⭐ ${item.vote_average?.toFixed(1) || '—'}</span>
+         <span>${(item.release_date || item.first_air_date || '').slice(0,4)}</span>
+         <span style="text-transform:capitalize">${item.media_type || 'movie'}</span>`
+      document.getElementById('heroOverview').textContent = overview.slice(0, 220) + (overview.length > 220 ? '…' : '')
+      document.getElementById('heroPlayBtn').onclick = () => openModal(item)
+      document.getElementById('heroWatchBtn').onclick = () => toggleWatchlist(item)
+    }
+
+    // ── SECTIONS ─────────────────────────────────────────────────────────────
+    function showSection(name, btn) {
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'))
+      if (btn) btn.classList.add('active')
+      currentSection = name
+      document.getElementById('hero').style.display = name === 'trending' ? 'flex' : 'none'
+      document.getElementById('trendingSection').style.display = name === 'trending' ? '' : 'none'
+      document.getElementById('favoritesSection').style.display = name === 'favorites' ? '' : 'none'
+      document.getElementById('watchlistSection').style.display = name === 'watchlist' ? '' : 'none'
+      document.getElementById('searchSection').style.display = 'none'
+      document.getElementById('searchInput').value = ''
+      if (name === 'favorites') loadFavorites()
+      if (name === 'watchlist') loadWatchlist()
+    }
+
+    // ── SEARCH ────────────────────────────────────────────────────────────────
+    function onSearch(q) {
+      clearTimeout(searchTimer)
+      if (!q.trim()) { showSection(currentSection); return }
+      searchTimer = setTimeout(() => doSearch(q.trim()), 350)
+    }
+
+    async function doSearch(q) {
+      document.getElementById('trendingSection').style.display = 'none'
+      document.getElementById('favoritesSection').style.display = 'none'
+      document.getElementById('watchlistSection').style.display = 'none'
+      document.getElementById('hero').style.display = 'none'
+      document.getElementById('searchSection').style.display = ''
+      document.getElementById('searchQuery').textContent = `"${q}"`
+      renderSkeletons('searchGrid', 10)
+      const data = await api(`/search/movie?query=${encodeURIComponent(q)}`)
+      renderGrid('searchGrid', data.results || [], 'movie')
+    }
+
+    // ── GRID ──────────────────────────────────────────────────────────────────
+    function renderGrid(containerId, items, forceType) {
+      const el = document.getElementById(containerId)
+      if (!items.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">🎬</div>Nothing to show here yet.</div>'
+        return
+      }
+      el.innerHTML = items.map(item => cardHTML(item, forceType)).join('')
+    }
+
+    function cardHTML(item, forceType) {
+      const type = forceType || item.media_type || 'movie'
+      const title = item.title || item.name || 'Untitled'
+      const year = (item.release_date || item.first_air_date || '').slice(0, 4)
+      const rating = item.vote_average?.toFixed(1) || '—'
+      const hasPoster = !!item.poster_path
+      const inWL = watchlistIds.has(String(item.id))
+      return `<div class="card" onclick="openModal(${JSON.stringify(JSON.stringify(item))})">
+        <span class="type-badge type-${type}">${type === 'tv' ? 'TV' : 'Film'}</span>
+        <button class="watchlist-btn" onclick="event.stopPropagation();toggleWatchlist(${JSON.stringify(JSON.stringify(item))})" title="${inWL ? 'Remove from watchlist' : 'Add to watchlist'}">${inWL ? '🔖' : '＋'}</button>
+        ${hasPoster
+          ? `<img class="card-poster" src="${IMG}${item.poster_path}" alt="${title}" loading="lazy" onerror="this.parentElement.querySelector('.no-poster').style.display='flex';this.style.display='none'">`
+          : ''
+        }
+        <div class="no-poster card-poster" style="display:${hasPoster ? 'none' : 'flex'};align-items:center;justify-content:center;flex-direction:column;gap:6px;background:var(--surface2);color:var(--text3)">
+          <span style="font-size:28px">🎬</span><span style="font-size:11px">No Image</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title" title="${title}">${title}</div>
+          <div class="card-meta"><span class="star">⭐</span>${rating}<span style="margin-left:auto;color:var(--text3)">${year}</span></div>
+        </div>
+      </div>`
+    }
+
+    function renderSkeletons(id, n) {
+      document.getElementById(id).innerHTML = Array(n).fill('<div class="skeleton skel-card"></div>').join('')
+    }
+
+    // ── MODAL ─────────────────────────────────────────────────────────────────
+    function openModal(itemOrStr) {
+      const item = typeof itemOrStr === 'string' ? JSON.parse(itemOrStr) : itemOrStr
+      currentItem = item
+      const type = item.media_type || 'movie'
+      const title = item.title || item.name || 'Untitled'
+      const backdrop = item.backdrop_path ? `${IMG_ORIG}${item.backdrop_path}` : (item.poster_path ? `${IMG}${item.poster_path}` : '')
+      const year = (item.release_date || item.first_air_date || '').slice(0, 4)
+      const rating = item.vote_average?.toFixed(1) || '—'
+      const inWL = watchlistIds.has(String(item.id))
+
+      document.getElementById('modalBackdrop').src = backdrop
+      document.getElementById('modalTitle').textContent = title
+      document.getElementById('modalMeta').innerHTML =
+        `<span>⭐ ${rating}</span><span>${year}</span><span style="text-transform:capitalize">${type}</span><span>${item.vote_count || 0} votes</span>`
+      document.getElementById('modalOverview').textContent = item.overview || 'No description available.'
+      document.getElementById('modalActions').innerHTML =
+        `<button class="btn btn-primary btn-sm" onclick="toggleWatchlist(currentItem)" id="wlBtn">${inWL ? '🔖 In Watchlist' : '＋ Add to Watchlist'}</button>`
+
+      // reset tabs
+      document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === 0))
+      document.getElementById('tabContent').innerHTML = '<div class="skeleton" style="height:80px;margin-bottom:8px"></div><div class="skeleton" style="height:80px"></div>'
+
+      document.getElementById('modalOverlay').classList.add('open')
+      document.body.style.overflow = 'hidden'
+      loadReviews(item.id, type)
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open')
+      document.body.style.overflow = ''
+    }
+
+    function onOverlayClick(e) { if (e.target === document.getElementById('modalOverlay')) closeModal() }
+
+    // ── TABS ──────────────────────────────────────────────────────────────────
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      if (tab === 'reviews') loadReviews(currentItem.id, currentItem.media_type || 'movie')
+      else loadRecommendations(currentItem.id, currentItem.media_type || 'movie')
+    }
+
+    // ── REVIEWS ───────────────────────────────────────────────────────────────
+    async function loadReviews(id, type) {
+      const el = document.getElementById('tabContent')
+      el.innerHTML = '<div class="skeleton" style="height:80px;margin-bottom:8px"></div><div class="skeleton" style="height:80px"></div>'
+      const data = await api(`/${type}/${id}/reviews`)
+      const reviews = (data.results || []).slice(0, 6)
+      if (!reviews.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div>No reviews yet.</div>'; return }
+      el.innerHTML = reviews.map(r => {
+        const rating = r.author_details?.rating
+        const avatar = r.author_details?.avatar_path
+          ? (r.author_details.avatar_path.startsWith('/https') ? r.author_details.avatar_path.slice(1) : `${IMG}${r.author_details.avatar_path}`)
+          : null
+        const initials = (r.author || '?')[0].toUpperCase()
+        const date = r.created_at ? new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''
+        const contentId = `rc-${r.id}`
+        return `<div class="review">
+          <div class="review-header">
+            <div class="review-avatar" style="${avatar ? `background:url(${avatar}) center/cover no-repeat` : ''}">${avatar ? '' : initials}</div>
+            <div><div class="review-author">${r.author || 'Anonymous'}</div><div class="review-date">${date}</div></div>
+            ${rating ? `<div class="review-rating">⭐ ${rating}/10</div>` : ''}
+          </div>
+          <div class="review-content collapsed" id="${contentId}">${r.content || ''}</div>
+          <button class="toggle-review" onclick="toggleReview('${contentId}', this)">Read more</button>
+        </div>`
+      }).join('')
+    }
+
+    function toggleReview(id, btn) {
+      const el = document.getElementById(id)
+      const collapsed = el.classList.toggle('collapsed')
+      btn.textContent = collapsed ? 'Read more' : 'Show less'
+    }
+
+    // ── RECOMMENDATIONS ───────────────────────────────────────────────────────
+    async function loadRecommendations(id, type) {
+      const el = document.getElementById('tabContent')
+      el.innerHTML = '<div class="skeleton" style="height:200px"></div>'
+      const data = await api(`/${type}/${id}/recommendations`)
+      const items = (data.results || []).slice(0, 12)
+      if (!items.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🎬</div>No recommendations found.</div>'; return }
+      el.innerHTML = `<div class="rec-grid">${items.map(item => {
+        const title = item.title || item.name || 'Untitled'
+        const hasPoster = !!item.poster_path
+        return `<div class="card" onclick="openModal(${JSON.stringify(JSON.stringify({...item, media_type: type}))})">
+          ${hasPoster ? `<img class="card-poster" src="${IMG}${item.poster_path}" alt="${title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+          <div class="no-poster card-poster" style="display:${hasPoster ? 'none' : 'flex'};align-items:center;justify-content:center;background:var(--surface2);color:var(--text3);font-size:24px">🎬</div>
+          <div class="card-body">
+            <div class="card-title" title="${title}">${title}</div>
+            <div class="card-meta"><span class="star">⭐</span>${item.vote_average?.toFixed(1) || '—'}</div>
+          </div>
+        </div>`
+      }).join('')}</div>`
+    }
+
+    // ── WATCHLIST ─────────────────────────────────────────────────────────────
+    async function toggleWatchlist(itemOrStr) {
+      const item = typeof itemOrStr === 'string' ? JSON.parse(itemOrStr) : itemOrStr
+      const type = item.media_type || 'movie'
+      const inWL = watchlistIds.has(String(item.id))
+      try {
+        await fetch(`${BASE}/account/${ACCOUNT_ID}/watchlist`, {
+          method: 'POST',
+          headers: { ...HEADERS, 'content-type': 'application/json' },
+          body: JSON.stringify({ media_type: type, media_id: String(item.id), watchlist: !inWL }),
+        })
+        if (inWL) watchlistIds.delete(String(item.id))
+        else watchlistIds.add(String(item.id))
+        showToast(inWL ? 'Removed from watchlist' : 'Added to watchlist ✓')
+        const btn = document.getElementById('wlBtn')
+        if (btn) btn.textContent = inWL ? '＋ Add to Watchlist' : '🔖 In Watchlist'
+      } catch { showToast('Action failed. Try again.') }
+    }
+
+    // ── TOAST ─────────────────────────────────────────────────────────────────
+    let toastTimer = null
+    function showToast(msg) {
+      const t = document.getElementById('toast')
+      t.textContent = msg
+      t.classList.add('show')
+      clearTimeout(toastTimer)
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2500)
+    }
+
+    // Escape key closes modal
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal() })
+  </script>
+
+  <!-- Beacon Chat -->
+  <div id="beacon-user" data-extension="true" data-events="true" data-org-id="LJVHRV">
+    <style id="bar-scoped-css"></style>
+  </div>
+  <script>
+    window.BeaconBar = {
+      ...(window.BeaconBar || {}),
+      orgId: "LJVHRV",
+      callbacks: {
+        "dev_success": (id, metaData) => {
+          console.log("dev success called with arguments", id, metaData);
+        }
+      },
+      user: {
+        identifier: "beacon-thkjes",
+        metaData: {
+          language: "en",
+          isVoiceBotEnabled: true,
+          enableTabAudio: true,
+          name: "Sai Kumar",
+          email: "support@beacon.li",
+          nested: { key: "value" },
+          paths: ["xyz", "abc"],
+          times: "6"
+        }
+      },
+      eventListeners: [(eventName, attributes, userId) => {
+        console.log("EVENT LISTENER", { eventName, attributes, userId });
+      }]
+    };
+  </script>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
